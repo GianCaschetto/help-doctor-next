@@ -13,7 +13,9 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { useSupabase } from "@/context/supabase";
+import { useSupabase } from "@/app/context/supabase";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 
 function Copyright(props: any) {
   return (
@@ -36,29 +38,13 @@ function Copyright(props: any) {
 const theme = createTheme();
 
 export default function SignUp() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
-    });
-  };
-
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const { signup } = useSupabase();
-  const onSignup = () => {
-    signup(
-      "user@email.com",
-      "123456789",
-    ).then((res: any) => {
-      console.log(res);
-    });
-  };
+  const router = useRouter();
 
   return (
     <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="xs">
-        <CssBaseline />
         <Box
           sx={{
             marginTop: 8,
@@ -73,18 +59,22 @@ export default function SignUp() {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          <Box
-            component="form"
-            noValidate
-            onSubmit={handleSubmit}
-            sx={{ mt: 3 }}
+          <form
+            onSubmit={handleSubmit((form) => {
+              signup(form).then(({ data }: any) => {
+                console.log("user created");
+                if (data !== undefined) {
+                  console.log(data);
+                  router.push("/dashboard");
+                }
+              });
+            })}
           >
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   autoComplete="given-name"
                   name="firstName"
-                  required
                   fullWidth
                   id="firstName"
                   label="First Name"
@@ -93,7 +83,6 @@ export default function SignUp() {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
-                  required
                   fullWidth
                   id="lastName"
                   label="Last Name"
@@ -107,33 +96,24 @@ export default function SignUp() {
                   fullWidth
                   id="email"
                   label="Email Address"
-                  name="email"
                   autoComplete="email"
+                  {...register("email", { required: true })}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   required
                   fullWidth
-                  name="password"
                   label="Password"
                   type="password"
                   id="password"
                   autoComplete="new-password"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox value="allowExtraEmails" color="primary" />
-                  }
-                  label="I want to receive inspiration, marketing promotions and updates via email."
+                  {...register("password", { required: true })}
                 />
               </Grid>
             </Grid>
             <Button
               type="submit"
-              onClick={onSignup}
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
@@ -147,7 +127,7 @@ export default function SignUp() {
                 </Link>
               </Grid>
             </Grid>
-          </Box>
+          </form>
         </Box>
         <Copyright sx={{ mt: 5 }} />
       </Container>

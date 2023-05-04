@@ -7,11 +7,24 @@ const Supabase = createContext<any>({});
 function SupabaseContextProvider({ children }: any) {
   // Create a single supabase client for interacting with your database
   const supabase = createClient(
-    "https://yilvkhwybmikwwusxcnt.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpbHZraHd5Ym1pa3d3dXN4Y250Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODMxNjQ3NzEsImV4cCI6MTk5ODc0MDc3MX0.D_BTTCJl7RL9SxNJeDTjmghWaf7QifvZKThSqqihYMs",
+    process.env.db_url ?? "",
+    process.env.db_pwd ?? "",
   );
 
-  const signup = async (email: string, password: string) => {
+  const logout = async () => await supabase.auth.signOut();
+  const signin = async (
+    { email, password }: { email: string; password: string },
+  ) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+    return { data, error };
+  };
+
+  const signup = async (
+    { email, password }: { email: string; password: string },
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
@@ -20,7 +33,7 @@ function SupabaseContextProvider({ children }: any) {
   };
 
   return (
-    <Supabase.Provider value={{ supabase, signup }}>
+    <Supabase.Provider value={{ supabase, signup, signin, logout }}>
       {children}
     </Supabase.Provider>
   );
