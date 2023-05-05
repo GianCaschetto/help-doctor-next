@@ -43,7 +43,8 @@ export default function SignUp() {
   const router = useRouter();
 
   return (
-    <ThemeProvider theme={theme}>
+    <Container>
+      <CssBaseline />
       <Container component="main" maxWidth="xs">
         <Box
           sx={{
@@ -65,7 +66,7 @@ export default function SignUp() {
                 console.log("user created");
                 if (data !== undefined) {
                   console.log(data);
-                  router.push("/dashboard");
+                  router.push("/");
                 }
               });
             })}
@@ -131,6 +132,6 @@ export default function SignUp() {
         </Box>
         <Copyright sx={{ mt: 5 }} />
       </Container>
-    </ThemeProvider>
+    </Container>
   );
 }
