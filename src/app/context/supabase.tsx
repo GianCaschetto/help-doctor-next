@@ -5,28 +5,11 @@ import { createClient } from "@supabase/supabase-js";
 const Supabase = createContext<any>({});
 
 function SupabaseContextProvider({ children }: any) {
-  const [isLoggedIn, setLoggedin] = useState(false);
-  const [user, setUser] = useState(null);
-
   // Create a single supabase client for interacting with your database
   const supabase = createClient(
     process.env.db_url ?? "",
     process.env.db_pwd ?? "",
   );
-
-  useEffect(() => {
-    supabase.auth.onAuthStateChange((event: any, session: any) => {
-      if (session?.access_token) {
-        setLoggedin(true);
-        setUser(session.user);
-        console.log("Usuario logueado");
-      }
-      if (!session?.access_token) {
-        setLoggedin(false);
-        console.log("Usuario deslogueado");
-      }
-    });
-  }, []);
 
   const logout = async () => await supabase.auth.signOut();
   const signin = async (
@@ -51,7 +34,7 @@ function SupabaseContextProvider({ children }: any) {
 
   return (
     <Supabase.Provider
-      value={{ supabase, signup, signin, logout, user, isLoggedIn }}
+      value={{ supabase, signup, signin, logout }}
     >
       {children}
     </Supabase.Provider>

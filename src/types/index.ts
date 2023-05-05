@@ -6,6 +6,7 @@ export interface IEvent {
     user_id?: string;
     date?: string | null;
     duration?: number;
+    pain: number,
     locations?: string;
     symptomes?: string;
     medications?: string;

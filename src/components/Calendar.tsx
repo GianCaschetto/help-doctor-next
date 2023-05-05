@@ -1,4 +1,6 @@
 "use client";
+import { useEffect } from "react";
+import { useSupabase } from "@/app/context/supabase";
 import { IEvent } from "@/types";
 import { Button, Grid, Typography } from "@mui/material";
 import dayjs from "dayjs";
@@ -6,12 +8,22 @@ import React from "react";
 import CalendarHeatMap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 
-type Props = {
-  events: IEvent[];
-};
-
-export default function Calendar({ events }: Props) {
+export default function Calendar() {
   let yearly = dayjs().subtract(365, "days").format("YYYY-MM-DD");
+  const { supabase } = useSupabase();
+  const [events, setEvents] = React.useState<IEvent[]>([]);
+  const getDates = async () => {
+    let { data, error } = await supabase
+      .from("events")
+      .select("date");
+    return data;
+  };
+  useEffect(() => {
+    getDates().then((data) => {
+      setEvents(data);
+    });
+  }, []);
+  console.log(events);
   return (
     <Grid item className="Calendar border" sx={{ p: 4 }}>
       <Grid
@@ -26,13 +38,7 @@ export default function Calendar({ events }: Props) {
       <CalendarHeatMap
         startDate={yearly}
         showWeekdayLabels
-        values={[{ date: "2023-01-01" }]}
-        classForValue={(value) => {
-          if (!value) {
-            return "color-empty";
-          }
-          return `primary opacity-${value.count}`;
-        }}
+        values={events}
       />
     </Grid>
   );

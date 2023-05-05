@@ -5,7 +5,25 @@ import { useEffect, useState } from "react";
 import DashboardComponent from "../components/Dashboard";
 
 export default function Home() {
-  const { supabase, user, isLoggedIn } = useSupabase();
+  const { supabase } = useSupabase();
+  const [isLoggedIn, setLoggedin] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const getSession = () => {
+    supabase.auth.onAuthStateChange((event: any, session: any) => {
+      if (session?.access_token) {
+        setLoggedin(true);
+        setUser(session.user);
+      }
+      if (!session?.access_token) {
+        setLoggedin(false);
+      }
+    });
+  };
+
+  useEffect(() => {
+    getSession();
+  }, []);
 
   return !isLoggedIn ? <SignUp /> : <DashboardComponent user={user} />;
 }
