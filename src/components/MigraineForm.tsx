@@ -2,14 +2,20 @@ import dayjs, { Dayjs } from "dayjs";
 import React, { useEffect, useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers";
 import { IEvent } from "@/types";
-import { Button, Card, CardContent, Container, TextField } from "@mui/material";
+import {
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  TextField,
+} from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useSupabase } from "@/app/context/supabase";
 
 export default function MigraineForm() {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
-  const { supabase } = useSupabase();
-  const [user, setUser] = useState<any>(null);
+  const { supabase, user } = useSupabase();
   const [value, setValue] = useState<Dayjs | null>(null);
   const [event, setEvent] = useState<IEvent>({
     pain: 0,
@@ -23,85 +29,111 @@ export default function MigraineForm() {
     medications: "",
   });
 
-  const getSession = () => {
-    supabase.auth.onAuthStateChange((event: any, session: any) => {
-      if (session?.access_token) {
-        setUser(session.user);
-      }
-    });
+  const refreshPage = () => {
+    window.location.reload();
   };
-
-  useEffect(() => {
-    getSession();
-  }, []);
 
   return (
     <>
       <Card variant="outlined">
         <CardContent>
           <form
-            onSubmit={handleSubmit(async (form: any) => {
-              const { data, error } = await supabase
-                .from("events")
-                .insert([
-                  {
-                    user_id: user?.id,
-                    date: dayjs(value).format("YYYY-MM-DD"),
-                    created_at: dayjs(user?.created_at).format("YYYY-MM-DD"),
-                    updated_at: dayjs(user?.updated_at).format("YYYY-MM-DD"),
-                    ...form,
-                  },
-                ]);
-              reset();
-              setValue(null);
-              if (error) console.log(error);
-              if (data) console.log(data);
+            onSubmit={handleSubmit(async (formData: any) => {
+              if (value) {
+                const { data, error } = await supabase
+                  .from("events")
+                  .insert([
+                    {
+                      user_id: user?.id,
+                      date: dayjs(value).format("YYYY-MM-DD"),
+                      created_at: dayjs(user?.created_at).format("YYYY-MM-DD"),
+                      updated_at: dayjs(user?.updated_at).format("YYYY-MM-DD"),
+                      ...formData,
+                    },
+                  ]);
+                reset();
+                setValue(null);
+                refreshPage();
+                if (error) console.log(error);
+                if (data) console.log(data);
+              } else {
+                alert("Please select a date");
+              }
             })}
           >
-            <DatePicker
-              format="DD/MM/YYYY"
-              value={value}
-              onChange={(newValue) => setValue(newValue)}
-            />
-            <TextField
-              type="number"
-              sx={{ mt: 2 }}
-              label="How many days did it last?"
-              variant="outlined"
-              {...register("duration", { required: true })}
-            />
-            <TextField
-              type="number"
-              sx={{ mt: 2 }}
-              label="Evaluate your pain (0 to 10)"
-              variant="outlined"
-              {...register("pain", { required: true })}
-            />
-            <TextField
-              sx={{ mt: 2 }}
-              label="Symptomes"
-              variant="outlined"
-              {...register("symptomes", { required: true })}
-            />
-            <TextField
-              sx={{ mt: 2 }}
-              label="Location"
-              variant="outlined"
-              {...register("locations", { required: true })}
-            />
-            <TextField
-              sx={{ mt: 2 }}
-              label="Medications"
-              variant="outlined"
-              {...register("medications", { required: true })}
-            />
-            <Button
-              variant="outlined"
-              type="submit"
-              sx={{ mt: 2 }}
+            <Grid
+              container
+              spacing={2}
+              justifyContent="space-between"
+              alignItems="center"
+              textAlign="center"
             >
-              Save
-            </Button>
+              <Grid
+                item
+                xs={12}
+              >
+                <DatePicker
+                  format="DD/MM/YYYY"
+                  value={value}
+                  onChange={(newValue) => setValue(newValue)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  type="number"
+                  sx={{ mt: 2 }}
+                  label="How many days did it last?"
+                  variant="standard"
+                  {...register("duration", { required: true })}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  type="number"
+                  sx={{ mt: 2 }}
+                  label="Pain level (0 to 10)"
+                  variant="standard"
+                  {...register("pain", { required: true, max: 10, min: 0 })}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
+                <TextField
+                  sx={{ mt: 2 }}
+                  label="Symptomes"
+                  variant="standard"
+                  {...register("symptomes", { required: true })}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
+                <TextField
+                  sx={{ mt: 2 }}
+                  label="Locations"
+                  variant="standard"
+                  {...register("locations", { required: true })}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  sx={{ mt: 2 }}
+                  label="Medications"
+                  variant="standard"
+                  {...register("medications", { required: true })}
+                />
+              </Grid>
+
+              <Grid item xs={12} textAlign="center">
+                <Button
+                  variant="outlined"
+                  type="submit"
+                  sx={{ mt: 2 }}
+                >
+                  Save
+                </Button>
+              </Grid>
+            </Grid>
           </form>
         </CardContent>
       </Card>
